@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Content Detector</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #fff;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 1rem;
+        }
+        .nav-link {
+            display: block;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .nav-link a {
+            color: #7c3aed;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #7c3aed;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav-link a:hover {
+            background: #7c3aed;
+            color: #fff;
+        }
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #888;
+        }
+        .tab:hover { border-color: #555; }
+        .tab.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: #fff;
+        }
+        .panel {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        .panel.active { display: block; }
+        .upload-area {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .upload-area:hover { border-color: #2563eb; background: #1f1f1f; }
+        .upload-area.dragover { border-color: #2563eb; background: #1f2937; }
+        input[type="file"] { display: none; }
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 1rem;
+            color: #e0e0e0;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        textarea:focus { outline: none; border-color: #2563eb; }
+        button {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #1d4ed8; }
+        button:disabled { background: #444; cursor: not-allowed; }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: none;
+        }
+        .result.show { display: block; }
+        .result.ai { background: #7f1d1d; border: 1px solid #dc2626; }
+        .result.human { background: #14532d; border: 1px solid #22c55e; }
+        .result.unknown { background: #1e1e1e; border: 1px solid #555; }
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .verdict {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        .confidence {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        .details { margin-top: 1rem; }
+        .details h4 { margin-bottom: 0.5rem; color: #aaa; }
+        .indicators {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        .indicator {
+            background: #333;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .disclaimer {
+            background: #1e1e1e;
+            border-left: 3px solid #f59e0b;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.show { display: block; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .file-name {
+            margin-top: 1rem;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Content Detector</h1>
+        <p class="subtitle">Detect AI-generated images, audio, video, and text</p>
+        <div class="nav-link">
+            <a href="/comprehensive">Comprehensive Analysis</a>
+            <a href="/learn">Learning Lab</a>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-panel="image">Image</div>
+            <div class="tab" data-panel="audio">Audio</div>
+            <div class="tab" data-panel="video">Video</div>
+            <div class="tab" data-panel="text">Text</div>
+        </div>
+
+        <!-- Image Panel -->
+        <div class="panel active" id="panel-image">
+            <div class="upload-area" id="image-drop">
+                <p>Drop an image here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Supports: JPG, PNG, WebP</p>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
+            <p class="file-name" id="image-filename"></p>
+            <button onclick="analyzeImage()" id="image-btn">Analyze Image</button>
+            <div class="loading" id="image-loading">
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </div>
+            <div class="result" id="image-result"></div>
+        </div>
+
+        <!-- Audio Panel -->
+        <div class="panel" id="panel-audio">
+            <div class="upload-area" id="audio-drop">
+                <p>Drop an audio file here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Supports: MP3, WAV, M4A, FLAC</p>
+                <input type="file" id="audio-input" accept="audio/*">
+            </div>
+            <p class="file-name" id="audio-filename"></p>
+            <button onclick="analyzeAudio()" id="audio-btn">Analyze Audio</button>
+            <div class="loading" id="audio-loading">
+                <div class="spinner"></div>
+                <p>Analyzing audio...</p>
+            </div>
+            <div class="result" id="audio-result"></div>
+        </div>
+
+        <!-- Video Panel -->
+        <div class="panel" id="panel-video">
+            <div class="upload-area" id="video-drop">
+                <p>Drop a video here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Supports: MP4, MOV, AVI, WebM</p>
+                <input type="file" id="video-input" accept="video/*">
+            </div>
+            <p class="file-name" id="video-filename"></p>
+            <button onclick="analyzeVideo()" id="video-btn">Analyze Video</button>
+            <div class="loading" id="video-loading">
+                <div class="spinner"></div>
+                <p>Analyzing video (this may take a moment)...</p>
+            </div>
+            <div class="result" id="video-result"></div>
+        </div>
+
+        <!-- Text Panel -->
+        <div class="panel" id="panel-text">
+            <textarea id="text-input" placeholder="Paste text here to analyze (minimum 100 characters)..."></textarea>
+            <button onclick="analyzeText()">Analyze Text</button>
+            <div class="loading" id="text-loading">
+                <div class="spinner"></div>
+                <p>Analyzing text...</p>
+            </div>
+            <div class="result" id="text-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+            });
+        });
+
+        // File upload handling
+        ['image', 'audio', 'video'].forEach(type => {
+            const drop = document.getElementById(type + '-drop');
+            const input = document.getElementById(type + '-input');
+            const filename = document.getElementById(type + '-filename');
+
+            drop.addEventListener('click', () => input.click());
+            drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('dragover'); });
+            drop.addEventListener('dragleave', () => drop.classList.remove('dragover'));
+            drop.addEventListener('drop', e => {
+                e.preventDefault();
+                drop.classList.remove('dragover');
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    filename.textContent = 'Selected: ' + e.dataTransfer.files[0].name;
+                }
+            });
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    filename.textContent = 'Selected: ' + input.files[0].name;
+                }
+            });
+        });
+
+        function showResult(elementId, data) {
+            const el = document.getElementById(elementId);
+            let cls = 'unknown';
+            let verdict = 'Analysis Complete';
+
+            if (data.is_ai_generated === true) {
+                cls = 'ai';
+                verdict = 'Likely AI-Generated';
+            } else if (data.is_ai_generated === false) {
+                cls = 'human';
+                verdict = 'Likely Human-Created';
+            }
+
+            let indicatorsHtml = '';
+            if (data.details?.indicators?.length) {
+                indicatorsHtml = `
+                    <div class="indicators">
+                        ${data.details.indicators.map(i => `<span class="indicator">${i.replace(/_/g, ' ')}</span>`).join('')}
+                    </div>
+                `;
+            }
+
+            let disclaimerHtml = '';
+            if (data.disclaimer) {
+                disclaimerHtml = `<div class="disclaimer">${data.disclaimer}</div>`;
+            }
+
+            el.className = 'result show ' + cls;
+            el.innerHTML = `
+                <div class="result-header">
+                    <span class="verdict">${verdict}</span>
+                    <span class="confidence">${data.confidence}%</span>
+                </div>
+                <div class="details">
+                    <h4>Method: ${data.method}</h4>
+                    ${indicatorsHtml}
+                    ${data.error ? `<p style="color: #f87171;">Error: ${data.error}</p>` : ''}
+                </div>
+                ${disclaimerHtml}
+            `;
+        }
+
+        async function analyzeImage() {
+            const input = document.getElementById('image-input');
+            if (!input.files.length) { alert('Please select an image'); return; }
+
+            document.getElementById('image-loading').classList.add('show');
+            document.getElementById('image-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/detect/image', { method: 'POST', body: formData });
+                const data = await res.json();
+                showResult('image-result', data);
+            } catch (e) {
+                showResult('image-result', { is_ai_generated: null, confidence: 0, method: 'error', error: e.message });
+            }
+            document.getElementById('image-loading').classList.remove('show');
+        }
+
+        async function analyzeAudio() {
+            const input = document.getElementById('audio-input');
+            if (!input.files.length) { alert('Please select an audio file'); return; }
+
+            document.getElementById('audio-loading').classList.add('show');
+            document.getElementById('audio-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/detect/audio', { method: 'POST', body: formData });
+                const data = await res.json();
+                showResult('audio-result', data);
+            } catch (e) {
+                showResult('audio-result', { is_ai_generated: null, confidence: 0, method: 'error', error: e.message });
+            }
+            document.getElementById('audio-loading').classList.remove('show');
+        }
+
+        async function analyzeVideo() {
+            const input = document.getElementById('video-input');
+            if (!input.files.length) { alert('Please select a video'); return; }
+
+            document.getElementById('video-loading').classList.add('show');
+            document.getElementById('video-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/detect/video', { method: 'POST', body: formData });
+                const data = await res.json();
+                showResult('video-result', data);
+            } catch (e) {
+                showResult('video-result', { is_ai_generated: null, confidence: 0, method: 'error', error: e.message });
+            }
+            document.getElementById('video-loading').classList.remove('show');
+        }
+
+        async function analyzeText() {
+            const text = document.getElementById('text-input').value;
+            if (text.length < 100) { alert('Please enter at least 100 characters'); return; }
+
+            document.getElementById('text-loading').classList.add('show');
+            document.getElementById('text-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('text', text);
+
+            try {
+                const res = await fetch('/detect/text', { method: 'POST', body: formData });
+                const data = await res.json();
+                showResult('text-result', data);
+            } catch (e) {
+                showResult('text-result', { is_ai_generated: null, confidence: 0, method: 'error', error: e.message });
+            }
+            document.getElementById('text-loading').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

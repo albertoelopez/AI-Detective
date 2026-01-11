@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - AI Detection Learning Lab</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            color: white;
+            background: {{ color }};
+        }
+        h1 { color: #fff; font-size: 2rem; }
+        .subtitle { color: #888; margin-bottom: 2rem; }
+
+        .nav {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #7c3aed;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #7c3aed;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav a:hover { background: #7c3aed; color: #fff; }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+        }
+        @media (max-width: 900px) {
+            .main-content { grid-template-columns: 1fr; }
+        }
+
+        .upload-section {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+        }
+
+        .media-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .media-tab {
+            padding: 0.5rem 1rem;
+            background: #0f0f0f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.2s;
+        }
+        .media-tab:hover { border-color: #555; }
+        .media-tab.active {
+            background: {{ color }};
+            border-color: {{ color }};
+            color: #fff;
+        }
+
+        .upload-area {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .upload-area:hover { border-color: {{ color }}; background: #1f1f1f; }
+        input[type="file"] { display: none; }
+
+        button {
+            background: {{ color }};
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.show { display: block; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: {{ color }};
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .info-panel {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.5rem;
+            height: fit-content;
+        }
+        .info-panel h3 {
+            color: {{ color }};
+            margin-bottom: 1rem;
+        }
+        .info-section {
+            margin-bottom: 1.5rem;
+        }
+        .info-section h4 {
+            color: #fff;
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+        .info-section p {
+            color: #888;
+            font-size: 0.9rem;
+        }
+        .info-section ul {
+            color: #888;
+            font-size: 0.9rem;
+            margin-left: 1.25rem;
+            margin-top: 0.5rem;
+        }
+        .info-section li { margin-bottom: 0.25rem; }
+
+        .result {
+            margin-top: 2rem;
+            display: none;
+        }
+        .result.show { display: block; }
+
+        .visualization {
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .visualization img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .analysis-box {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .analysis-box h4 {
+            color: {{ color }};
+            margin-bottom: 1rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat {
+            background: #0f0f0f;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .stat-label {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .indicator {
+            background: #2a2a3a;
+            border-left: 3px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0 6px 6px 0;
+        }
+        .indicator.high { border-left-color: #ef4444; }
+        .indicator.medium { border-left-color: #f59e0b; }
+        .indicator.low { border-left-color: #22c55e; }
+        .indicator-name { font-weight: 600; margin-bottom: 0.25rem; }
+        .indicator-desc { font-size: 0.9rem; color: #aaa; }
+
+        .score-bar {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+        }
+
+        .explanation-section {
+            background: #0a1628;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .explanation-section h4 {
+            color: #60a5fa;
+            margin-bottom: 1rem;
+        }
+        .explanation-item {
+            margin-bottom: 1.25rem;
+        }
+        .explanation-item h5 {
+            color: #93c5fd;
+            margin-bottom: 0.5rem;
+        }
+        .explanation-item p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .file-name { margin-top: 1rem; color: #888; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="icon">{{ icon }}</div>
+            <div>
+                <h1>{{ title }}</h1>
+            </div>
+        </div>
+        <p class="subtitle">{{ description }}</p>
+
+        <div class="nav">
+            <a href="/learn">Back to Learning Hub</a>
+            <a href="/">Detector</a>
+        </div>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="upload-section">
+                    {% if media_types|length > 1 %}
+                    <div class="media-tabs">
+                        {% for mt in media_types %}
+                        <div class="media-tab {% if loop.first %}active{% endif %}" data-type="{{ mt }}">
+                            {{ mt|capitalize }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <div class="upload-area" id="upload-area">
+                        <p>Drop a file here or click to upload</p>
+                        <p style="color: #666; margin-top: 0.5rem;">
+                            {% if 'image' in media_types %}Images: JPG, PNG{% endif %}
+                            {% if 'audio' in media_types %}{% if 'image' in media_types %} | {% endif %}Audio: MP3, WAV{% endif %}
+                            {% if 'video' in media_types %}{% if 'image' in media_types or 'audio' in media_types %} | {% endif %}Video: MP4{% endif %}
+                        </p>
+                        <input type="file" id="file-input"
+                            accept="{% if 'image' in media_types %}image/*{% endif %}{% if 'audio' in media_types %},audio/*{% endif %}{% if 'video' in media_types %},video/*{% endif %}">
+                    </div>
+                    <p class="file-name" id="file-name"></p>
+                    <button onclick="analyze()" id="analyze-btn">Analyze</button>
+
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <p>Analyzing...</p>
+                    </div>
+                </div>
+
+                <div class="result" id="result"></div>
+            </div>
+
+            <div class="info-panel">
+                <h3>About {{ title }}</h3>
+
+                {% if technique == 'wavelet' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Decomposes signals into different frequency scales while preserving location information.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Approximation coefficients (low freq)</li>
+                        <li>Detail coefficients (horizontal, vertical, diagonal)</li>
+                        <li>Multi-resolution decomposition</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>AI images often lack fine detail at level 1, or have unusual energy distribution across scales.</p>
+                </div>
+
+                {% elif technique == 'ela' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Resaves image at known quality and measures the difference - revealing compression history.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>JPEG compression artifacts</li>
+                        <li>Error level consistency</li>
+                        <li>Manipulation detection</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>AI-generated images have no real compression history - they show unusual ELA patterns.</p>
+                </div>
+
+                {% elif technique == 'noise' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Extracts and analyzes the noise component of an image.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Sensor noise characteristics</li>
+                        <li>Gaussian noise distribution</li>
+                        <li>Noise consistency</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>AI images often have synthetic, missing, or inconsistent noise patterns.</p>
+                </div>
+
+                {% elif technique == 'histogram' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Shows the distribution of pixel values across color channels.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Color channel distributions</li>
+                        <li>Histogram gaps and spikes</li>
+                        <li>Clipping analysis</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>AI images may have unnatural peaks, gaps, or overly smooth distributions.</p>
+                </div>
+
+                {% elif technique == 'gradient' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Analyzes how pixel values change across the image (edges and transitions).</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Sobel gradients</li>
+                        <li>Canny edge detection</li>
+                        <li>Laplacian (texture)</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>AI often produces edges that are too smooth, too sharp, or with unusual patterns.</p>
+                </div>
+
+                {% elif technique == 'autocorrelation' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Correlates a signal with shifted versions of itself to find repeating patterns.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Self-similarity</li>
+                        <li>Periodic pattern detection</li>
+                        <li>Copy-paste detection</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>GAN tiling artifacts and texture repetition show up as correlation peaks.</p>
+                </div>
+
+                {% elif technique == 'optical-flow' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Tracks apparent motion of pixels between video frames.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>Motion vectors</li>
+                        <li>Temporal consistency</li>
+                        <li>Flow magnitude and direction</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>Deepfakes often have unnatural motion, especially around face boundaries.</p>
+                </div>
+
+                {% elif technique == 'cepstral' %}
+                <div class="info-section">
+                    <h4>What it does</h4>
+                    <p>Computes the "spectrum of the spectrum" to capture voice characteristics.</p>
+                </div>
+                <div class="info-section">
+                    <h4>Key concepts</h4>
+                    <ul>
+                        <li>MFCCs (Mel-Frequency Cepstral Coefficients)</li>
+                        <li>Spectral envelope</li>
+                        <li>Voice fingerprinting</li>
+                    </ul>
+                </div>
+                <div class="info-section">
+                    <h4>AI detection use</h4>
+                    <p>Synthetic voices have different MFCC patterns - often too stable or with unusual statistics.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const technique = "{{ technique }}";
+        const mediaTypes = {{ media_types | tojson }};
+        let currentMediaType = mediaTypes[0];
+
+        // Media type tabs
+        document.querySelectorAll('.media-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentMediaType = tab.dataset.type;
+
+                // Update accept attribute
+                const input = document.getElementById('file-input');
+                const accepts = [];
+                if (currentMediaType === 'image') accepts.push('image/*');
+                if (currentMediaType === 'audio') accepts.push('audio/*');
+                if (currentMediaType === 'video') accepts.push('video/*');
+                input.accept = accepts.join(',');
+            });
+        });
+
+        // File upload handling
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileName = document.getElementById('file-name');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '{{ color }}';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#444';
+        });
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#444';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = 'Selected: ' + e.dataTransfer.files[0].name;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileName.textContent = 'Selected: ' + fileInput.files[0].name;
+            }
+        });
+
+        function renderResult(data) {
+            const el = document.getElementById('result');
+
+            if (data.error) {
+                el.innerHTML = `<div class="analysis-box"><p style="color: #ef4444;">Error: ${data.error}</p></div>`;
+                el.classList.add('show');
+                return;
+            }
+
+            let indicatorsHtml = '';
+            if (data.analysis?.ai_indicators?.length) {
+                indicatorsHtml = data.analysis.ai_indicators.map(ind => `
+                    <div class="indicator ${ind.severity || 'medium'}">
+                        <div class="indicator-name">${ind.name}</div>
+                        <div class="indicator-desc">${ind.description}</div>
+                    </div>
+                `).join('');
+            } else {
+                indicatorsHtml = '<p style="color: #888;">No significant AI indicators detected.</p>';
+            }
+
+            // Build stats HTML dynamically from analysis object
+            let statsHtml = '<div class="stat-grid">';
+            if (data.analysis) {
+                for (const [key, value] of Object.entries(data.analysis)) {
+                    if (key === 'ai_indicators' || key === 'ai_likelihood_score') continue;
+                    if (typeof value === 'object') {
+                        for (const [k, v] of Object.entries(value)) {
+                            statsHtml += `
+                                <div class="stat">
+                                    <div class="stat-value">${typeof v === 'number' ? v.toFixed ? v.toFixed(1) : v : v}</div>
+                                    <div class="stat-label">${k.replace(/_/g, ' ')}</div>
+                                </div>
+                            `;
+                        }
+                    } else if (typeof value === 'number') {
+                        statsHtml += `
+                            <div class="stat">
+                                <div class="stat-value">${value.toFixed ? value.toFixed(1) : value}</div>
+                                <div class="stat-label">${key.replace(/_/g, ' ')}</div>
+                            </div>
+                        `;
+                    }
+                }
+            }
+            statsHtml += '</div>';
+
+            const aiScore = data.analysis?.ai_likelihood_score || 0;
+
+            let explanationHtml = '';
+            if (data.explanation?.sections) {
+                explanationHtml = `
+                    <div class="explanation-section">
+                        <h4>${data.explanation.title}</h4>
+                        ${data.explanation.sections.map(s => `
+                            <div class="explanation-item">
+                                <h5>${s.heading}</h5>
+                                <p>${s.content}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            el.innerHTML = `
+                <div class="visualization">
+                    <img src="data:image/png;base64,${data.visualization}" alt="Analysis Visualization">
+                </div>
+
+                <div class="analysis-box">
+                    <h4>Analysis Results</h4>
+                    ${statsHtml}
+
+                    <h4 style="margin-top: 1.5rem;">AI Likelihood Score</h4>
+                    <div class="stat-value">${aiScore}%</div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${aiScore}%"></div>
+                    </div>
+
+                    <h4 style="margin-top: 1.5rem;">Detected Patterns</h4>
+                    ${indicatorsHtml}
+                </div>
+
+                ${explanationHtml}
+            `;
+
+            el.classList.add('show');
+        }
+
+        async function analyze() {
+            const input = document.getElementById('file-input');
+            if (!input.files.length) {
+                alert('Please select a file');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+            if (mediaTypes.length > 1) {
+                formData.append('media_type', currentMediaType);
+            }
+
+            try {
+                const res = await fetch(`/learn/${technique}/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                renderResult(data);
+            } catch (e) {
+                renderResult({ error: e.message });
+            }
+
+            document.getElementById('loading').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

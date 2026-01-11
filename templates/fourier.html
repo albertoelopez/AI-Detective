@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fourier Transform Learning Lab</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { text-align: center; margin-bottom: 0.5rem; color: #fff; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 1rem; }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .nav a {
+            color: #2563eb;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #2563eb;
+            border-radius: 6px;
+        }
+        .nav a:hover { background: #2563eb; color: #fff; }
+
+        .intro-box {
+            background: #1a1a2e;
+            border: 1px solid #2563eb;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .intro-box h2 { color: #60a5fa; margin-bottom: 1rem; }
+        .intro-box p { margin-bottom: 1rem; }
+        .intro-box code {
+            background: #0f0f0f;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #888;
+        }
+        .tab:hover { border-color: #555; }
+        .tab.active { background: #7c3aed; border-color: #7c3aed; color: #fff; }
+
+        .panel {
+            display: none;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        .panel.active { display: block; }
+
+        .theory-section {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .theory-section h3 {
+            color: #a78bfa;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .theory-section h3::before {
+            content: "?";
+            background: #7c3aed;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .upload-area {
+            border: 2px dashed #444;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .upload-area:hover { border-color: #7c3aed; background: #1f1f2f; }
+        input[type="file"] { display: none; }
+
+        button {
+            background: #7c3aed;
+            color: #fff;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover { background: #6d28d9; }
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.show { display: block; }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid #333;
+            border-top-color: #7c3aed;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .result {
+            margin-top: 1.5rem;
+            display: none;
+        }
+        .result.show { display: block; }
+
+        .visualization {
+            background: #0f0f0f;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+        .visualization img {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+
+        .analysis-box {
+            background: #1e1e2e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .analysis-box h4 {
+            color: #a78bfa;
+            margin-bottom: 1rem;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .stat {
+            background: #0f0f0f;
+            padding: 1rem;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #fff;
+        }
+        .stat-label {
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .indicator {
+            background: #2a2a3a;
+            border-left: 3px solid #f59e0b;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0 6px 6px 0;
+        }
+        .indicator.high { border-left-color: #ef4444; }
+        .indicator.medium { border-left-color: #f59e0b; }
+        .indicator.low { border-left-color: #22c55e; }
+        .indicator-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .indicator-desc {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .explanation-section {
+            background: #0a1628;
+            border: 1px solid #1e3a5f;
+            border-radius: 8px;
+            padding: 1.5rem;
+        }
+        .explanation-section h4 {
+            color: #60a5fa;
+            margin-bottom: 1rem;
+        }
+        .explanation-item {
+            margin-bottom: 1.25rem;
+        }
+        .explanation-item h5 {
+            color: #93c5fd;
+            margin-bottom: 0.5rem;
+        }
+        .explanation-item p {
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .file-name { margin-top: 1rem; color: #888; }
+
+        .score-bar {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.5rem;
+        }
+        .score-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #22c55e, #f59e0b, #ef4444);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Fourier Transform Learning Lab</h1>
+        <p class="subtitle">Learn how frequency analysis can reveal AI-generated content</p>
+
+        <div class="nav">
+            <a href="/">Back to Detector</a>
+        </div>
+
+        <div class="intro-box">
+            <h2>What is the Fourier Transform?</h2>
+            <p>
+                The <strong>Fourier Transform</strong> is a mathematical tool that decomposes a signal into its constituent frequencies.
+                Think of it like a prism splitting white light into a rainbow - it reveals the "ingredients" that make up a signal.
+            </p>
+            <p>
+                <strong>For images:</strong> It shows which spatial patterns (edges, textures, gradients) exist.<br>
+                <strong>For audio:</strong> It shows which sound frequencies (bass, treble, harmonics) are present.<br>
+                <strong>For video:</strong> It can analyze both spatial (per-frame) and temporal (over time) patterns.
+            </p>
+            <p>
+                AI-generated content often has telltale frequency signatures that differ from natural content.
+                This lab lets you explore these patterns hands-on.
+            </p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" data-panel="image">Image FFT</div>
+            <div class="tab" data-panel="audio">Audio FFT</div>
+            <div class="tab" data-panel="video">Video FFT</div>
+        </div>
+
+        <!-- Image FFT Panel -->
+        <div class="panel active" id="panel-image">
+            <div class="theory-section">
+                <h3>How 2D FFT Works on Images</h3>
+                <p>
+                    A 2D FFT converts an image from the <strong>spatial domain</strong> (pixels arranged in rows/columns)
+                    to the <strong>frequency domain</strong> (which patterns exist at different scales).
+                </p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Low frequencies</strong> (center of FFT): Large-scale features like overall brightness, gradients</li>
+                    <li><strong>High frequencies</strong> (edges of FFT): Fine details like edges, textures, noise</li>
+                    <li><strong>Horizontal/Vertical lines</strong> in FFT: Correspond to vertical/horizontal patterns in image</li>
+                </ul>
+            </div>
+
+            <div class="upload-area" id="image-drop">
+                <p>Drop an image here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Try comparing AI-generated vs real photos!</p>
+                <input type="file" id="image-input" accept="image/*">
+            </div>
+            <p class="file-name" id="image-filename"></p>
+            <button onclick="analyzeImageFFT()" id="image-btn">Analyze with FFT</button>
+
+            <div class="loading" id="image-loading">
+                <div class="spinner"></div>
+                <p>Computing Fourier Transform...</p>
+            </div>
+
+            <div class="result" id="image-result"></div>
+        </div>
+
+        <!-- Audio FFT Panel -->
+        <div class="panel" id="panel-audio">
+            <div class="theory-section">
+                <h3>How FFT Works on Audio</h3>
+                <p>
+                    Audio FFT reveals which frequencies are present in a sound. For speech and music,
+                    this shows fundamental frequencies and their harmonics (overtones).
+                </p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Spectrogram</strong>: Shows how frequencies change over time (x=time, y=frequency, color=intensity)</li>
+                    <li><strong>Harmonics</strong>: Natural sounds have integer-multiple overtones; AI may have irregular patterns</li>
+                    <li><strong>Mel scale</strong>: Frequencies mapped to human perception (we hear differences better at low frequencies)</li>
+                </ul>
+            </div>
+
+            <div class="upload-area" id="audio-drop">
+                <p>Drop an audio file here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Try AI voice clones vs real recordings!</p>
+                <input type="file" id="audio-input" accept="audio/*">
+            </div>
+            <p class="file-name" id="audio-filename"></p>
+            <button onclick="analyzeAudioFFT()">Analyze with FFT</button>
+
+            <div class="loading" id="audio-loading">
+                <div class="spinner"></div>
+                <p>Computing spectrogram...</p>
+            </div>
+
+            <div class="result" id="audio-result"></div>
+        </div>
+
+        <!-- Video FFT Panel -->
+        <div class="panel" id="panel-video">
+            <div class="theory-section">
+                <h3>How FFT Works on Video</h3>
+                <p>
+                    Video has two dimensions for FFT analysis: <strong>spatial</strong> (within each frame)
+                    and <strong>temporal</strong> (across frames over time).
+                </p>
+                <ul style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                    <li><strong>Spatial FFT</strong>: Same as image FFT, applied to each frame</li>
+                    <li><strong>Temporal FFT</strong>: Analyzes how pixels change over time - reveals motion patterns, flickering</li>
+                    <li><strong>Deepfake artifacts</strong>: Often visible as temporal inconsistencies, especially around manipulated faces</li>
+                </ul>
+            </div>
+
+            <div class="upload-area" id="video-drop">
+                <p>Drop a video here or click to upload</p>
+                <p style="color: #666; margin-top: 0.5rem;">Works best with short clips (under 30 seconds)</p>
+                <input type="file" id="video-input" accept="video/*">
+            </div>
+            <p class="file-name" id="video-filename"></p>
+            <button onclick="analyzeVideoFFT()">Analyze with FFT</button>
+
+            <div class="loading" id="video-loading">
+                <div class="spinner"></div>
+                <p>Analyzing video frames...</p>
+            </div>
+
+            <div class="result" id="video-result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById('panel-' + tab.dataset.panel).classList.add('active');
+            });
+        });
+
+        // File upload handling
+        ['image', 'audio', 'video'].forEach(type => {
+            const drop = document.getElementById(type + '-drop');
+            const input = document.getElementById(type + '-input');
+            const filename = document.getElementById(type + '-filename');
+
+            drop.addEventListener('click', () => input.click());
+            drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.borderColor = '#7c3aed'; });
+            drop.addEventListener('dragleave', () => drop.style.borderColor = '#444');
+            drop.addEventListener('drop', e => {
+                e.preventDefault();
+                drop.style.borderColor = '#444';
+                if (e.dataTransfer.files.length) {
+                    input.files = e.dataTransfer.files;
+                    filename.textContent = 'Selected: ' + e.dataTransfer.files[0].name;
+                }
+            });
+            input.addEventListener('change', () => {
+                if (input.files.length) {
+                    filename.textContent = 'Selected: ' + input.files[0].name;
+                }
+            });
+        });
+
+        function renderResult(elementId, data) {
+            const el = document.getElementById(elementId);
+
+            if (data.error) {
+                el.innerHTML = `<div class="analysis-box"><p style="color: #ef4444;">Error: ${data.error}</p></div>`;
+                el.classList.add('show');
+                return;
+            }
+
+            let indicatorsHtml = '';
+            if (data.analysis?.ai_indicators?.length) {
+                indicatorsHtml = data.analysis.ai_indicators.map(ind => `
+                    <div class="indicator ${ind.severity}">
+                        <div class="indicator-name">${ind.name}</div>
+                        <div class="indicator-desc">${ind.description}</div>
+                    </div>
+                `).join('');
+            } else {
+                indicatorsHtml = '<p style="color: #888;">No significant AI indicators detected in frequency analysis.</p>';
+            }
+
+            let statsHtml = '';
+            if (data.analysis?.frequency_distribution) {
+                const fd = data.analysis.frequency_distribution;
+                statsHtml = `
+                    <div class="stat-grid">
+                        <div class="stat">
+                            <div class="stat-value">${fd.low_frequency_percent}%</div>
+                            <div class="stat-label">Low Frequency</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${fd.mid_frequency_percent}%</div>
+                            <div class="stat-label">Mid Frequency</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${fd.high_frequency_percent}%</div>
+                            <div class="stat-label">High Frequency</div>
+                        </div>
+                    </div>
+                `;
+            } else if (data.analysis?.audio_stats) {
+                const as = data.analysis.audio_stats;
+                statsHtml = `
+                    <div class="stat-grid">
+                        <div class="stat">
+                            <div class="stat-value">${as.duration_seconds}s</div>
+                            <div class="stat-label">Duration</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${as.sample_rate}Hz</div>
+                            <div class="stat-label">Sample Rate</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${as.harmonic_ratio}%</div>
+                            <div class="stat-label">Harmonic Content</div>
+                        </div>
+                    </div>
+                `;
+            } else if (data.analysis?.video_stats) {
+                const vs = data.analysis.video_stats;
+                statsHtml = `
+                    <div class="stat-grid">
+                        <div class="stat">
+                            <div class="stat-value">${vs.frames_analyzed}</div>
+                            <div class="stat-label">Frames Analyzed</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${vs.fps}</div>
+                            <div class="stat-label">FPS</div>
+                        </div>
+                        <div class="stat">
+                            <div class="stat-value">${vs.spatial_consistency}%</div>
+                            <div class="stat-label">Frame Consistency</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            let explanationHtml = '';
+            if (data.explanation?.sections) {
+                explanationHtml = `
+                    <div class="explanation-section">
+                        <h4>${data.explanation.title}</h4>
+                        ${data.explanation.sections.map(s => `
+                            <div class="explanation-item">
+                                <h5>${s.heading}</h5>
+                                <p>${s.content}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+
+            const aiScore = data.analysis?.ai_likelihood_score || 0;
+
+            el.innerHTML = `
+                <div class="visualization">
+                    <img src="data:image/png;base64,${data.visualization}" alt="FFT Visualization">
+                </div>
+
+                <div class="analysis-box">
+                    <h4>Frequency Analysis Results</h4>
+                    ${statsHtml}
+
+                    <h4 style="margin-top: 1.5rem;">AI Likelihood Score</h4>
+                    <div class="stat-value">${aiScore}%</div>
+                    <div class="score-bar">
+                        <div class="score-fill" style="width: ${aiScore}%"></div>
+                    </div>
+                    <p style="color: #888; font-size: 0.85rem; margin-top: 0.5rem;">
+                        Based on frequency domain analysis only. Higher = more AI-like patterns detected.
+                    </p>
+
+                    <h4 style="margin-top: 1.5rem;">Detected Patterns</h4>
+                    ${indicatorsHtml}
+                </div>
+
+                ${explanationHtml}
+            `;
+
+            el.classList.add('show');
+        }
+
+        async function analyzeImageFFT() {
+            const input = document.getElementById('image-input');
+            if (!input.files.length) { alert('Please select an image'); return; }
+
+            document.getElementById('image-loading').classList.add('show');
+            document.getElementById('image-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/fourier/image', { method: 'POST', body: formData });
+                const data = await res.json();
+                renderResult('image-result', data);
+            } catch (e) {
+                renderResult('image-result', { error: e.message });
+            }
+            document.getElementById('image-loading').classList.remove('show');
+        }
+
+        async function analyzeAudioFFT() {
+            const input = document.getElementById('audio-input');
+            if (!input.files.length) { alert('Please select an audio file'); return; }
+
+            document.getElementById('audio-loading').classList.add('show');
+            document.getElementById('audio-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/fourier/audio', { method: 'POST', body: formData });
+                const data = await res.json();
+                renderResult('audio-result', data);
+            } catch (e) {
+                renderResult('audio-result', { error: e.message });
+            }
+            document.getElementById('audio-loading').classList.remove('show');
+        }
+
+        async function analyzeVideoFFT() {
+            const input = document.getElementById('video-input');
+            if (!input.files.length) { alert('Please select a video'); return; }
+
+            document.getElementById('video-loading').classList.add('show');
+            document.getElementById('video-result').classList.remove('show');
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch('/fourier/video', { method: 'POST', body: formData });
+                const data = await res.json();
+                renderResult('video-result', data);
+            } catch (e) {
+                renderResult('video-result', { error: e.message });
+            }
+            document.getElementById('video-loading').classList.remove('show');
+        }
+    </script>
+</body>
+</html>

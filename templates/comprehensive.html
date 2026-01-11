@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprehensive Analysis - AI Detector</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a0a2e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            font-size: 2.5rem;
+        }
+        .subtitle {
+            text-align: center;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .nav a {
+            color: #a855f7;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border: 1px solid #a855f7;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        .nav a:hover { background: #a855f7; color: #fff; }
+
+        .intro-box {
+            background: linear-gradient(135deg, #1e1e3f 0%, #2a1a4a 100%);
+            border: 1px solid #a855f7;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+        .intro-box h2 { color: #c084fc; margin-bottom: 0.75rem; }
+        .intro-box p { max-width: 700px; margin: 0 auto; }
+
+        .technique-pills {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        .pill {
+            background: #2a2a4a;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #a5a5c5;
+        }
+
+        .upload-section {
+            background: #1a1a2a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .media-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .media-tab {
+            padding: 1rem 2rem;
+            background: #0f0f1f;
+            border: 2px solid #333;
+            border-radius: 12px;
+            cursor: pointer;
+            color: #888;
+            transition: all 0.2s;
+            text-align: center;
+            min-width: 150px;
+        }
+        .media-tab:hover { border-color: #555; }
+        .media-tab.active {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            border-color: #a855f7;
+            color: #fff;
+        }
+        .media-tab .count {
+            display: block;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 0.25rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #444;
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        .upload-area:hover {
+            border-color: #a855f7;
+            background: rgba(168, 85, 247, 0.05);
+        }
+        input[type="file"] { display: none; }
+
+        button {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            color: #fff;
+            border: none;
+            padding: 1rem 3rem;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.3);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem;
+        }
+        .loading.show { display: block; }
+
+        .progress-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        .progress-bar {
+            height: 8px;
+            background: #333;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #7c3aed, #a855f7);
+            animation: progress 3s ease-in-out infinite;
+            width: 30%;
+        }
+        @keyframes progress {
+            0% { margin-left: 0; }
+            50% { margin-left: 70%; }
+            100% { margin-left: 0; }
+        }
+        .progress-text {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .file-name {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #888;
+        }
+
+        /* Results */
+        .result {
+            display: none;
+        }
+        .result.show { display: block; }
+
+        .verdict-card {
+            background: linear-gradient(135deg, #1a1a2a 0%, #2a1a3a 100%);
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 2px solid #333;
+        }
+        .verdict-card.ai { border-color: #dc2626; background: linear-gradient(135deg, #1a1a2a 0%, #2a1520 100%); }
+        .verdict-card.uncertain-ai { border-color: #f59e0b; }
+        .verdict-card.uncertain-human { border-color: #22c55e; }
+        .verdict-card.human { border-color: #22c55e; background: linear-gradient(135deg, #1a1a2a 0%, #152a1a 100%); }
+
+        .verdict-score {
+            font-size: 4rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        .verdict-card.ai .verdict-score { color: #f87171; }
+        .verdict-card.uncertain-ai .verdict-score { color: #fbbf24; }
+        .verdict-card.uncertain-human .verdict-score { color: #86efac; }
+        .verdict-card.human .verdict-score { color: #4ade80; }
+
+        .verdict-label {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .verdict-confidence {
+            color: #888;
+            font-size: 0.9rem;
+        }
+
+        .agreement-bar {
+            max-width: 400px;
+            margin: 1.5rem auto 0;
+            display: flex;
+            gap: 4px;
+            height: 8px;
+        }
+        .agreement-segment {
+            flex: 1;
+            border-radius: 4px;
+            background: #333;
+        }
+        .agreement-segment.ai { background: #dc2626; }
+        .agreement-segment.human { background: #22c55e; }
+
+        .agreement-text {
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #888;
+        }
+
+        .techniques-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .technique-card {
+            background: #1a1a2a;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 1.25rem;
+        }
+        .technique-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+        .technique-name {
+            font-weight: 600;
+            color: #fff;
+        }
+        .technique-score {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .technique-score.high { color: #f87171; }
+        .technique-score.medium { color: #fbbf24; }
+        .technique-score.low { color: #4ade80; }
+
+        .technique-bar {
+            height: 6px;
+            background: #333;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .technique-bar-fill {
+            height: 100%;
+            transition: width 0.5s ease;
+        }
+        .technique-bar-fill.high { background: linear-gradient(90deg, #f87171, #dc2626); }
+        .technique-bar-fill.medium { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+        .technique-bar-fill.low { background: linear-gradient(90deg, #4ade80, #22c55e); }
+
+        .technique-weight {
+            font-size: 0.75rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+
+        .indicators-section {
+            background: #1a1a2a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .indicators-section h3 {
+            color: #c084fc;
+            margin-bottom: 1rem;
+        }
+
+        .indicator-summary {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .indicator-count {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        .indicator-count.high { background: rgba(220, 38, 38, 0.2); color: #f87171; }
+        .indicator-count.medium { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+        .indicator-count.low { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+
+        .indicator-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .indicator-item {
+            background: #0f0f1f;
+            border-left: 3px solid #666;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0 8px 8px 0;
+        }
+        .indicator-item.high { border-left-color: #dc2626; }
+        .indicator-item.medium { border-left-color: #f59e0b; }
+        .indicator-item.low { border-left-color: #22c55e; }
+
+        .indicator-source {
+            font-size: 0.75rem;
+            color: #888;
+            margin-bottom: 0.25rem;
+        }
+        .indicator-name {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .indicator-desc {
+            font-size: 0.9rem;
+            color: #aaa;
+        }
+
+        .visualizations-section {
+            background: #1a1a2a;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+        .visualizations-section h3 {
+            color: #c084fc;
+            margin-bottom: 1rem;
+        }
+
+        .viz-tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .viz-tab {
+            padding: 0.5rem 1rem;
+            background: #0f0f1f;
+            border: 1px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #888;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+        .viz-tab:hover { border-color: #555; }
+        .viz-tab.active {
+            background: #7c3aed;
+            border-color: #7c3aed;
+            color: #fff;
+        }
+
+        .viz-content {
+            display: none;
+            text-align: center;
+        }
+        .viz-content.active { display: block; }
+        .viz-content img {
+            max-width: 100%;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Comprehensive Analysis</h1>
+        <p class="subtitle">Multi-technique ensemble detection for higher accuracy</p>
+
+        <div class="nav">
+            <a href="/">Simple Detector</a>
+            <a href="/learn">Learning Lab</a>
+        </div>
+
+        <div class="intro-box">
+            <h2>How It Works</h2>
+            <p>
+                This analyzer runs <strong>multiple independent techniques</strong> on your file simultaneously.
+                When techniques agree, confidence increases. Disagreement flags uncertainty.
+                The combined score weights each technique by its reliability.
+            </p>
+            <div class="technique-pills" id="technique-pills">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+
+        <div class="upload-section">
+            <div class="media-tabs">
+                <div class="media-tab active" data-type="image">
+                    <strong>Image</strong>
+                    <span class="count">7 techniques</span>
+                </div>
+                <div class="media-tab" data-type="audio">
+                    <strong>Audio</strong>
+                    <span class="count">4 techniques</span>
+                </div>
+                <div class="media-tab" data-type="video">
+                    <strong>Video</strong>
+                    <span class="count">2 techniques</span>
+                </div>
+            </div>
+
+            <div class="upload-area" id="upload-area">
+                <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">Drop a file here or click to upload</p>
+                <p style="color: #666;">All applicable techniques will be run automatically</p>
+                <input type="file" id="file-input" accept="image/*">
+            </div>
+            <p class="file-name" id="file-name"></p>
+            <button onclick="runAnalysis()" id="analyze-btn">Run Comprehensive Analysis</button>
+
+            <div class="loading" id="loading">
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    <p class="progress-text" id="progress-text">Running all techniques...</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const techniques = {
+            image: ['Fourier', 'Wavelet', 'ELA', 'Noise', 'Histogram', 'Gradient', 'Autocorrelation'],
+            audio: ['Fourier', 'Wavelet', 'Autocorrelation', 'Cepstral (MFCCs)'],
+            video: ['Fourier', 'Optical Flow']
+        };
+
+        let currentType = 'image';
+
+        // Update technique pills
+        function updatePills() {
+            const container = document.getElementById('technique-pills');
+            container.innerHTML = techniques[currentType].map(t =>
+                `<span class="pill">${t}</span>`
+            ).join('');
+        }
+        updatePills();
+
+        // Media type tabs
+        document.querySelectorAll('.media-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.media-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentType = tab.dataset.type;
+                updatePills();
+
+                // Update file input
+                const input = document.getElementById('file-input');
+                if (currentType === 'image') input.accept = 'image/*';
+                else if (currentType === 'audio') input.accept = 'audio/*';
+                else if (currentType === 'video') input.accept = 'video/*';
+
+                // Clear previous result
+                document.getElementById('result').classList.remove('show');
+            });
+        });
+
+        // File upload handling
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const fileName = document.getElementById('file-name');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#a855f7';
+        });
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.style.borderColor = '#444';
+        });
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#444';
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                fileName.textContent = 'Selected: ' + e.dataTransfer.files[0].name;
+            }
+        });
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length) {
+                fileName.textContent = 'Selected: ' + fileInput.files[0].name;
+            }
+        });
+
+        function renderResult(data) {
+            const el = document.getElementById('result');
+            const agg = data.aggregation;
+
+            if (!agg) {
+                el.innerHTML = '<div class="verdict-card"><p>Error: Could not analyze file</p></div>';
+                el.classList.add('show');
+                return;
+            }
+
+            // Build technique cards
+            let techniqueCards = '';
+            for (const [key, info] of Object.entries(agg.technique_scores)) {
+                const scoreClass = info.score >= 60 ? 'high' : info.score >= 40 ? 'medium' : 'low';
+                techniqueCards += `
+                    <div class="technique-card">
+                        <div class="technique-header">
+                            <span class="technique-name">${info.name}</span>
+                            <span class="technique-score ${scoreClass}">${info.score}%</span>
+                        </div>
+                        <div class="technique-bar">
+                            <div class="technique-bar-fill ${scoreClass}" style="width: ${info.score}%"></div>
+                        </div>
+                        <div class="technique-weight">Weight: ${(info.weight * 100).toFixed(0)}%</div>
+                    </div>
+                `;
+            }
+
+            // Build agreement visualization
+            const totalVotes = agg.agreement.ai_votes + agg.agreement.human_votes;
+            let agreementSegments = '';
+            for (let i = 0; i < totalVotes; i++) {
+                const cls = i < agg.agreement.ai_votes ? 'ai' : 'human';
+                agreementSegments += `<div class="agreement-segment ${cls}"></div>`;
+            }
+
+            // Build indicators
+            let indicatorItems = '';
+            if (agg.all_indicators && agg.all_indicators.length) {
+                // Sort by severity
+                const sorted = [...agg.all_indicators].sort((a, b) => {
+                    const order = { high: 0, medium: 1, low: 2 };
+                    return (order[a.severity] || 2) - (order[b.severity] || 2);
+                });
+                indicatorItems = sorted.map(ind => `
+                    <div class="indicator-item ${ind.severity || 'medium'}">
+                        <div class="indicator-source">${ind.technique}</div>
+                        <div class="indicator-name">${ind.name}</div>
+                        <div class="indicator-desc">${ind.description}</div>
+                    </div>
+                `).join('');
+            } else {
+                indicatorItems = '<p style="color: #888;">No significant indicators detected</p>';
+            }
+
+            // Build visualization tabs
+            let vizTabs = '';
+            let vizContents = '';
+            let first = true;
+            for (const [key, result] of Object.entries(data.individual_results)) {
+                if (result && result.visualization) {
+                    const name = agg.technique_scores[key]?.name || key;
+                    vizTabs += `<div class="viz-tab ${first ? 'active' : ''}" data-viz="${key}">${name}</div>`;
+                    vizContents += `
+                        <div class="viz-content ${first ? 'active' : ''}" id="viz-${key}">
+                            <img src="data:image/png;base64,${result.visualization}" alt="${name}">
+                        </div>
+                    `;
+                    first = false;
+                }
+            }
+
+            el.innerHTML = `
+                <div class="verdict-card ${agg.verdict_class}">
+                    <div class="verdict-score">${agg.combined_score}%</div>
+                    <div class="verdict-label">${agg.verdict}</div>
+                    <div class="verdict-confidence">Confidence: ${agg.confidence.toUpperCase()}</div>
+
+                    <div class="agreement-bar">
+                        ${agreementSegments}
+                    </div>
+                    <div class="agreement-text">${agg.agreement.description}</div>
+                </div>
+
+                <h3 style="color: #c084fc; margin-bottom: 1rem;">Individual Technique Results</h3>
+                <div class="techniques-grid">
+                    ${techniqueCards}
+                </div>
+
+                <div class="indicators-section">
+                    <h3>Detected Indicators (${agg.indicators_summary.total})</h3>
+                    <div class="indicator-summary">
+                        <div class="indicator-count high">${agg.indicators_summary.high_severity} High Severity</div>
+                        <div class="indicator-count medium">${agg.indicators_summary.medium_severity} Medium</div>
+                        <div class="indicator-count low">${agg.indicators_summary.low_severity} Low</div>
+                    </div>
+                    <div class="indicator-list">
+                        ${indicatorItems}
+                    </div>
+                </div>
+
+                <div class="visualizations-section">
+                    <h3>Technique Visualizations</h3>
+                    <div class="viz-tabs">
+                        ${vizTabs}
+                    </div>
+                    ${vizContents}
+                </div>
+            `;
+
+            // Add viz tab switching
+            el.querySelectorAll('.viz-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    el.querySelectorAll('.viz-tab').forEach(t => t.classList.remove('active'));
+                    el.querySelectorAll('.viz-content').forEach(c => c.classList.remove('active'));
+                    tab.classList.add('active');
+                    document.getElementById('viz-' + tab.dataset.viz).classList.add('active');
+                });
+            });
+
+            el.classList.add('show');
+        }
+
+        async function runAnalysis() {
+            const input = document.getElementById('file-input');
+            if (!input.files.length) {
+                alert('Please select a file');
+                return;
+            }
+
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('result').classList.remove('show');
+            document.getElementById('analyze-btn').disabled = true;
+
+            const progressText = document.getElementById('progress-text');
+            const techniqueList = techniques[currentType];
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < techniqueList.length) {
+                    progressText.textContent = `Running ${techniqueList[i]}...`;
+                    i++;
+                }
+            }, 800);
+
+            const formData = new FormData();
+            formData.append('file', input.files[0]);
+
+            try {
+                const res = await fetch(`/comprehensive/${currentType}`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                renderResult(data);
+            } catch (e) {
+                document.getElementById('result').innerHTML =
+                    `<div class="verdict-card"><p>Error: ${e.message}</p></div>`;
+                document.getElementById('result').classList.add('show');
+            }
+
+            clearInterval(interval);
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('analyze-btn').disabled = false;
+        }
+    </script>
+</body>
+</html>
